@@ -17,26 +17,30 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+// @flow
 import React from 'react';
 import { Link } from 'react-router';
 import shallowCompare from 'react-addons-shallow-compare';
 import ProfileLink from '../components/ProfileLink';
 import ProfileDate from '../components/ProfileDate';
 import ProfileActions from '../components/ProfileActions';
-import { ProfileType } from '../propTypes';
 import { translate } from '../../../helpers/l10n';
 import { getRulesUrl } from '../../../helpers/urls';
 import { isStagnant } from '../utils';
+import type { Profile } from '../propTypes';
 
-export default class ProfilesListRow extends React.Component {
-  static propTypes = {
-    profile: ProfileType.isRequired,
-    canAdmin: React.PropTypes.bool.isRequired,
-    updateProfiles: React.PropTypes.func.isRequired
-  };
+type Props = {
+  canAdmin: boolean,
+  organization: ?string,
+  profile: Profile,
+  updateProfiles: () => Promise<*>
+};
 
-  shouldComponentUpdate(nextProps, nextState) {
-    return shallowCompare(this, nextProps, nextState);
+export default class ProfilesListRow extends React.PureComponent {
+  props: Props;
+
+  shouldComponentUpdate(nextProps: Props) {
+    return shallowCompare(this, nextProps);
   }
 
   renderName() {
@@ -44,7 +48,7 @@ export default class ProfilesListRow extends React.Component {
     const offset = 25 * (profile.depth - 1);
     return (
       <div style={{ paddingLeft: offset }}>
-        <ProfileLink profileKey={profile.key}>
+        <ProfileLink organization={this.props.organization} profileKey={profile.key}>
           {profile.name}
         </ProfileLink>
       </div>
@@ -70,6 +74,8 @@ export default class ProfilesListRow extends React.Component {
   }
 
   renderRules() {
+    // FIXME getRulesUrl
+
     const { profile } = this.props;
 
     const activeRulesUrl = getRulesUrl({
@@ -91,8 +97,7 @@ export default class ProfilesListRow extends React.Component {
               to={deprecatedRulesUrl}
               className="badge badge-normal-size badge-danger-light"
               title={translate('quality_profiles.deprecated_rules')}
-              data-toggle="tooltip"
-            >
+              data-toggle="tooltip">
               {profile.activeDeprecatedRuleCount}
             </Link>
           </span>}
@@ -128,8 +133,7 @@ export default class ProfilesListRow extends React.Component {
       <tr
         className="quality-profiles-table-row"
         data-key={this.props.profile.key}
-        data-name={this.props.profile.name}
-      >
+        data-name={this.props.profile.name}>
         <td className="quality-profiles-table-name">
           {this.renderName()}
         </td>
@@ -152,8 +156,9 @@ export default class ProfilesListRow extends React.Component {
                 <i className="icon-dropdown" />
               </button>
               <ProfileActions
-                profile={this.props.profile}
                 canAdmin={this.props.canAdmin}
+                organization={this.props.organization}
+                profile={this.props.profile}
                 updateProfiles={this.props.updateProfiles}
               />
             </div>

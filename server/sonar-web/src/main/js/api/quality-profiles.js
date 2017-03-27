@@ -19,7 +19,7 @@
  */
 import { request, checkStatus, parseJSON, getJSON, post, postJSON } from '../helpers/request';
 
-export function getQualityProfiles(data) {
+export function getQualityProfiles(data: { organization?: string, projectKey?: string }) {
   const url = '/api/qualityprofiles/search';
   return getJSON(url, data).then(r => r.profiles);
 }
@@ -126,12 +126,10 @@ export function getExporters() {
 
 /**
  * Restore built-in profiles
- * @param {string} languageKey
  * @returns {Promise}
  */
-export function restoreBuiltInProfiles(languageKey) {
+export function restoreBuiltInProfiles(data) {
   const url = '/api/qualityprofiles/restore_built_in';
-  const data = { language: languageKey };
   return post(url, data);
 }
 
