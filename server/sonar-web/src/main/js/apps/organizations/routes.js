@@ -20,6 +20,7 @@
 import OrganizationPage from './components/OrganizationPage';
 import OrganizationProjects from './components/OrganizationProjects';
 import OrganizationFavoriteProjects from './components/OrganizationFavoriteProjects';
+import OrganizationRules from './components/OrganizationRules';
 import OrganizationAdmin from './components/OrganizationAdmin';
 import OrganizationEdit from './components/OrganizationEdit';
 import OrganizationGroups from './components/OrganizationGroups';
@@ -49,6 +50,10 @@ const routes = [
       {
         path: 'projects/favorite',
         component: OrganizationFavoriteProjects
+      },
+      {
+        path: 'rules',
+        component: OrganizationRules
       },
       {
         path: 'quality_profiles',

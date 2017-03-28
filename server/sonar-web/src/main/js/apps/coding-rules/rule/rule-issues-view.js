@@ -20,6 +20,7 @@
 import $ from 'jquery';
 import Marionette from 'backbone.marionette';
 import Template from '../templates/rule/coding-rules-rule-issues.hbs';
+import { getComponentIssuesUrl } from '../../../helpers/urls';
 
 export default Marionette.ItemView.extend({
   template: Template,
@@ -34,7 +35,6 @@ export default Marionette.ItemView.extend({
   },
 
   requestIssues() {
-    const that = this;
     const url = window.baseUrl + '/api/issues/search';
     const options = {
       rules: this.model.id,
@@ -49,11 +49,16 @@ export default Marionette.ItemView.extend({
         const projectBase = r.components.find(component => component.uuid === project.val);
         return {
           ...project,
-          name: projectBase != null ? projectBase.longName : ''
+          name: projectBase != null ? projectBase.longName : '',
+          issuesUrl: projectBase != null &&
+            getComponentIssuesUrl(projectBase.key, {
+              resolved: 'false',
+              rules: this.model.id
+            })
         };
       });
-      that.projects = projects;
-      that.total = r.total;
+      this.projects = projects;
+      this.total = r.total;
     });
   },
 
@@ -61,10 +66,7 @@ export default Marionette.ItemView.extend({
     return {
       ...Marionette.ItemView.prototype.serializeData.apply(this, arguments),
       total: this.total,
-      projects: this.projects,
-      baseSearchUrl: window.baseUrl +
-        '/issues/search#resolved=false|rules=' +
-        encodeURIComponent(this.model.id)
+      projects: this.projects
     };
   }
 });
