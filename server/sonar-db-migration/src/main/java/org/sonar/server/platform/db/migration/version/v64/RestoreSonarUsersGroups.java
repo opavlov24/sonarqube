@@ -60,8 +60,8 @@ public class RestoreSonarUsersGroups extends DataChange {
   @Override
   protected void execute(Context context) throws SQLException {
     Date now = new Date(system2.now());
-    Group sonarUsersGroup = selectSonarUsersGroupId(context);
-    Group defaultGroup = searchDefaultGroupId(context);
+    Group sonarUsersGroup = selectSonarUsersGroup(context);
+    Group defaultGroup = searchDefaultGroup(context);
     if (sonarUsersGroup == null) {
       createSonarUsersGroupAndCopyPermissionsFromDefaultGroup(context, defaultGroup, now);
       displayWarnLog(defaultGroup);
@@ -79,7 +79,7 @@ public class RestoreSonarUsersGroups extends DataChange {
 
   private void createSonarUsersGroupAndCopyPermissionsFromDefaultGroup(Context context, Group defaultGroup, Date now) throws SQLException {
     insertSonarUsersGroupWithPendingDescription(context, defaultOrganizationUuid.get(context), now);
-    Group sonarUsersGroupId = requireNonNull(selectSonarUsersGroupId(context), format("Creation of '%s' group has failed", SONAR_USERS_NAME));
+    Group sonarUsersGroupId = requireNonNull(selectSonarUsersGroup(context), format("Creation of '%s' group has failed", SONAR_USERS_NAME));
     copyAllPermissionsFromDefaultGroupToSonarUsers(context, sonarUsersGroupId, defaultGroup, now);
   }
 
@@ -148,10 +148,10 @@ public class RestoreSonarUsersGroups extends DataChange {
       .commit();
   }
 
-  private static Group searchDefaultGroupId(Context context) throws SQLException {
+  private static Group searchDefaultGroup(Context context) throws SQLException {
     Long groupId = selectDefaultGroupIdFromProperties(context);
     if (groupId == null) {
-      Group sonarUsersGroup = selectSonarUsersGroupId(context);
+      Group sonarUsersGroup = selectSonarUsersGroup(context);
       checkState(sonarUsersGroup != null, "Default group setting %s is defined to a 'sonar-users' group but it doesn't exist.", DEFAULT_GROUP_SETTING);
       return sonarUsersGroup;
     }
@@ -161,7 +161,7 @@ public class RestoreSonarUsersGroups extends DataChange {
   }
 
   @CheckForNull
-  private static Group selectSonarUsersGroupId(Context context) throws SQLException {
+  private static Group selectSonarUsersGroup(Context context) throws SQLException {
     return context.prepareSelect("SELECT id, name, description FROM groups WHERE name=?")
       .setString(1, SONAR_USERS_NAME)
       .get(Group::new);
