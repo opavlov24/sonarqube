@@ -23,6 +23,7 @@ package org.sonar.server.projecttag.ws;
 import java.util.List;
 import java.util.Locale;
 import org.apache.commons.lang.StringUtils;
+import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.server.ws.Request;
 import org.sonar.api.server.ws.Response;
 import org.sonar.api.server.ws.WebService;
@@ -92,7 +93,7 @@ public class SetAction implements ProjectTagsWsAction {
 
     try (DbSession dbSession = dbClient.openSession(false)) {
       ComponentDto project = componentFinder.getByKey(dbSession, projectKey);
-      checkRequest(project.isRootProject(), "Component must be a project");
+      checkRequest(Qualifiers.PROJECT.equals(project.qualifier()), "Component '%s' is not a project", project.key());
       userSession.checkComponentUuidPermission(UserRole.ADMIN, project.uuid());
 
       project.setTags(tags);
