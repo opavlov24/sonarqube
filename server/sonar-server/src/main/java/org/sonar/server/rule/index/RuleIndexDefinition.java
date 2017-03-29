@@ -52,16 +52,21 @@ public class RuleIndexDefinition implements IndexDefinition {
   public static final String FIELD_RULE_LANGUAGE = "lang";
   public static final String FIELD_RULE_IS_TEMPLATE = "isTemplate";
   public static final String FIELD_RULE_TEMPLATE_KEY = "templateKey";
-  public static final String FIELD_RULE_ALL_TAGS = "allTags";
   public static final String FIELD_RULE_TYPE = "type";
   public static final String FIELD_RULE_CREATED_AT = "createdAt";
   public static final String FIELD_RULE_UPDATED_AT = "updatedAt";
 
   public static final Set<String> SORT_FIELDS = ImmutableSet.of(
-    RuleIndexDefinition.FIELD_RULE_NAME,
-    RuleIndexDefinition.FIELD_RULE_UPDATED_AT,
-    RuleIndexDefinition.FIELD_RULE_CREATED_AT,
-    RuleIndexDefinition.FIELD_RULE_KEY);
+    FIELD_RULE_NAME,
+    FIELD_RULE_UPDATED_AT,
+    FIELD_RULE_CREATED_AT,
+    FIELD_RULE_KEY);
+
+  // Rules metadata fields
+  public static final IndexType INDEX_TYPE_RULE_EXTENSION = new IndexType(INDEX, "ruleExtension");
+  public static final String FIELD_METADATA_ORGANIZATION_UUID = "organizationUuid";
+  public static final String FIELD_METADATA_RULE_KEY = "key";
+  public static final String FIELD_METADATA_RULE_TAGS = "tags";
 
   // Active rule fields
   public static final IndexType INDEX_TYPE_ACTIVE_RULE = new IndexType(INDEX, "activeRule");
@@ -89,23 +94,32 @@ public class RuleIndexDefinition implements IndexDefinition {
     index.configureShards(settings, 1);
 
     // Active rule type
-    NewIndex.NewIndexType activeRuleMapping = index.createType(RuleIndexDefinition.INDEX_TYPE_ACTIVE_RULE.getType());
+    NewIndex.NewIndexType activeRuleMapping = index.createType(INDEX_TYPE_ACTIVE_RULE.getType());
     activeRuleMapping.setEnableSource(false);
-    activeRuleMapping.setAttribute("_parent", ImmutableMap.of("type", RuleIndexDefinition.INDEX_TYPE_RULE.getType()));
+    activeRuleMapping.setAttribute("_parent", ImmutableMap.of("type", INDEX_TYPE_RULE.getType()));
 
-    activeRuleMapping.stringFieldBuilder(RuleIndexDefinition.FIELD_ACTIVE_ORGANIZATION_UUID).disableNorms().build();
-    activeRuleMapping.stringFieldBuilder(RuleIndexDefinition.FIELD_ACTIVE_RULE_KEY).addSubFields(SORTABLE_ANALYZER).build();
-    activeRuleMapping.stringFieldBuilder(RuleIndexDefinition.FIELD_ACTIVE_RULE_RULE_KEY).addSubFields(SORTABLE_ANALYZER).build();
-    activeRuleMapping.stringFieldBuilder(RuleIndexDefinition.FIELD_ACTIVE_RULE_REPOSITORY).build();
-    activeRuleMapping.stringFieldBuilder(RuleIndexDefinition.FIELD_ACTIVE_RULE_PROFILE_KEY).disableNorms().build();
-    activeRuleMapping.stringFieldBuilder(RuleIndexDefinition.FIELD_ACTIVE_RULE_INHERITANCE).disableNorms().build();
-    activeRuleMapping.stringFieldBuilder(RuleIndexDefinition.FIELD_ACTIVE_RULE_SEVERITY).disableNorms().build();
+    activeRuleMapping.stringFieldBuilder(FIELD_ACTIVE_ORGANIZATION_UUID).disableNorms().build();
+    activeRuleMapping.stringFieldBuilder(FIELD_ACTIVE_RULE_KEY).addSubFields(SORTABLE_ANALYZER).build();
+    activeRuleMapping.stringFieldBuilder(FIELD_ACTIVE_RULE_RULE_KEY).addSubFields(SORTABLE_ANALYZER).build();
+    activeRuleMapping.stringFieldBuilder(FIELD_ACTIVE_RULE_REPOSITORY).build();
+    activeRuleMapping.stringFieldBuilder(FIELD_ACTIVE_RULE_PROFILE_KEY).disableNorms().build();
+    activeRuleMapping.stringFieldBuilder(FIELD_ACTIVE_RULE_INHERITANCE).disableNorms().build();
+    activeRuleMapping.stringFieldBuilder(FIELD_ACTIVE_RULE_SEVERITY).disableNorms().build();
 
-    activeRuleMapping.createLongField(RuleIndexDefinition.FIELD_ACTIVE_RULE_CREATED_AT);
-    activeRuleMapping.createLongField(RuleIndexDefinition.FIELD_ACTIVE_RULE_UPDATED_AT);
+    activeRuleMapping.createLongField(FIELD_ACTIVE_RULE_CREATED_AT);
+    activeRuleMapping.createLongField(FIELD_ACTIVE_RULE_UPDATED_AT);
+
+    // Rule extension type
+    NewIndex.NewIndexType ruleExtensionType = index.createType(INDEX_TYPE_RULE_EXTENSION.getType());
+    ruleExtensionType.setEnableSource(false);
+    ruleExtensionType.setAttribute("_parent", ImmutableMap.of("type", INDEX_TYPE_RULE.getType()));
+
+    ruleExtensionType.stringFieldBuilder(FIELD_METADATA_ORGANIZATION_UUID).disableNorms().build();
+    ruleExtensionType.stringFieldBuilder(FIELD_METADATA_RULE_KEY).disableNorms().build();
+    ruleExtensionType.stringFieldBuilder(FIELD_METADATA_RULE_TAGS).addSubFields(SEARCH_WORDS_ANALYZER).build();
 
     // Rule type
-    NewIndex.NewIndexType ruleMapping = index.createType(RuleIndexDefinition.INDEX_TYPE_RULE.getType());
+    NewIndex.NewIndexType ruleMapping = index.createType(INDEX_TYPE_RULE.getType());
     ruleMapping.setEnableSource(false);
 
     ruleMapping.stringFieldBuilder(FIELD_RULE_KEY).addSubFields(SORTABLE_ANALYZER).build();
@@ -125,8 +139,7 @@ public class RuleIndexDefinition implements IndexDefinition {
 
     ruleMapping.createBooleanField(FIELD_RULE_IS_TEMPLATE);
     ruleMapping.stringFieldBuilder(FIELD_RULE_TEMPLATE_KEY).disableNorms().build();
-
-    ruleMapping.stringFieldBuilder(FIELD_RULE_ALL_TAGS).addSubFields(SEARCH_WORDS_ANALYZER).build();
+    
     ruleMapping.stringFieldBuilder(FIELD_RULE_TYPE).disableNorms().build();
 
     ruleMapping.createLongField(FIELD_RULE_CREATED_AT);
